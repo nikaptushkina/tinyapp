@@ -2,6 +2,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const req = require("express/lib/request");
+const cookiePraser = require("cookie-parser");
 
 // set-up server
 const app = express();
@@ -88,6 +89,11 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 // to edit URLs
 app.post("/urls/:shortURL/edit", (req,res) => {
   urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+  res.redirect('/urls');
+});
+
+app.post("/login", (req,res) => {
+  res.cookie('username', req.body.username);
   res.redirect('/urls');
 });
 
