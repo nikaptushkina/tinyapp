@@ -83,7 +83,13 @@ app.post("/urls/:shortURL/delete", (req,res) => {
     delete urlDatabase[req.params.shortURL];
   }
   return res.redirect('/urls');
-})
+});
+
+// to edit URLs
+app.post("/urls/:shortURL/edit", (req,res) => {
+  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+  res.redirect('/urls');
+});
 
 // returns 6 random alphanumeric characters
 function generateRandomString() {
