@@ -46,8 +46,22 @@ app.get("/urls", (req,res) => {
   res.render("urls_index", templateVars);
 });
 
+// Redirect short URLs
+app.get("/u/:shortURL", (req,res) => {
+  const longURL = urlDatabase[req.params.shortURL].longURL;
+  if (longURL.startsWith('http://')) {
+    res.redirect(303, longURL);
+  } else {
+    res.redirect('http://' + longURL);
+  }
+});
+
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = {
+    urls: urlDatabase,
+    shortURL: req.params.shortURL,
+    longURL: urlDatabase[req.params.shortURL].longURL
+  };
   res.render("urls_show", templateVars);
 });
 
