@@ -2,6 +2,10 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const bodyParser = require("body-parser");
+
+// convert request body into string (from Buffer)
+app.use(bodyParser.urlencoded({extended: true}));
 
 // set ejs as view engine
 app.set("view engine", "ejs");
