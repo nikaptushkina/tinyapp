@@ -66,7 +66,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 // POST REQUESTS
-// POST route to receive form submissions
+// POST route to receive form submission
 app.post("/urls", (req,res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {
