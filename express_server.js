@@ -15,11 +15,17 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
-// route for /urls
+// GET route for /urls
 app.get("/urls", (req,res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
-})
+});
+
+// POST route to receive form submissions
+app.post("/urls", (req,res) => {
+  console.log(req.body) // Log the POST request body to the console
+  res.send("Ok");       // Respond with "Ok"
+});
 
 app.get("/", (req,res) => {
   res.send("Hello!");
