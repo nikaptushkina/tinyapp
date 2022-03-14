@@ -54,8 +54,11 @@ app.get("/urls/:shortURL", (req, res) => {
 // POST REQUESTS
 // POST route to receive form submissions
 app.post("/urls", (req,res) => {
-  console.log(req.body) // Log the POST request body to the console
-  res.send("Ok");       // Respond with "Ok"
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = {
+    longURL: req.body.longURL
+  };
+  res.redirect(`urls/${shortURL}`) // redirects upon POST request
 });
 
 // returns 6 random alphanumeric characters
@@ -63,7 +66,7 @@ function generateRandomString() {
   let result = '';
   let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.florr(Math.random() * chars.length));
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return result;
 };
