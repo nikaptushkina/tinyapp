@@ -42,7 +42,9 @@ app.get("/urls.json", (req,res) => {
 
 // Route for /urls
 app.get("/urls", (req,res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    urls: urlDatabase,
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -74,6 +76,14 @@ app.post("/urls", (req,res) => {
   };
   res.redirect(`urls/${shortURL}`) // redirects upon POST request
 });
+
+// to delete URLs
+app.post("/urls/:shortURL/delete", (req,res) => {
+  for (const shortURL in urlDatabase) {
+    delete urlDatabase[req.params.shortURL];
+  }
+  return res.redirect('/urls');
+})
 
 // returns 6 random alphanumeric characters
 function generateRandomString() {
