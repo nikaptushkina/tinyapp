@@ -74,6 +74,14 @@ app.get("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 });
 
+// registration page
+app.get("/register", (req,res) => {
+  const templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_register", templateVars);
+});
+
 // POST REQUESTS
 // POST route to receive form submission
 app.post("/urls", (req,res) => {
