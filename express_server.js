@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
+const { generateRandomString, checkBlank, checkEmail } = require("./helperFunctions");
 
 // set-up server
 const app = express();
@@ -111,6 +112,22 @@ app.post("/urls/:shortURL/edit", (req,res) => {
 });
 
 app.post("/register", (req,res) => {
+  
+  if (checkBlank(req)) {
+    return res.status(400).send(`
+    <h1>Error 400</h1>
+    <h2>email or password field is blank</h2>
+    `);
+  };
+  
+  const user = checkEmail(req.body.email, users);
+  if (user) {
+    return res.status(409).send(`
+    <h1>Error 400</h1>
+    <h2>email already exists</h2>
+    `);
+  }
+
   const randomID = generateRandomString();
   const userID = 'user' + Object.keys(users).length + randomID;
   if (users[userID] === undefined) {
@@ -119,10 +136,7 @@ app.post("/register", (req,res) => {
       email: req.body.email,
       password: req.body.password
     }
-  } else {
-    console.log('Error: This ID is unavailable');
-    res.redirect("/urls");
-  }
+  };
   res.cookie('user_id', userID);
   console.log(users);
   res.redirect("/urls");
@@ -140,13 +154,3 @@ app.post("/logout", (req,res) => {
   res.clearCookie('user_id');
   res.redirect('/urls');
 });
-
-// returns 6 random alphanumeric characters
-function generateRandomString() {
-  let result = '';
-  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 6; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-};
