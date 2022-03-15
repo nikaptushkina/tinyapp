@@ -11,19 +11,8 @@
       </div>
     </div>
     <% if (user === undefined) { %>
-      <form method="POST" action="/login">
-        <div class="d-flex justifty-content-end">
-
-          <div class="mx-1">
-            <input class="form-control" type="text" name="username" placeholder="Username">
-          </div>
-
-          <div class="mx-1">
-           <input class="btn btn-outline-dark" type="submit" value="Login">
-          </div>
-
-      </div>
-    </form>
+      <a class="nav-item nav-link" href="/register">Register</a>
+      <a class="nav-item nav-link" href="/login">Login</a>
     <% } else { %>
     <form method="POST" action="/logout">
       <div class="d-flex justifty-content-end">
@@ -39,5 +28,6 @@
       </div>
     </form>
     <% } %>
+    </div>
   </nav>
 </header>
