@@ -22,6 +22,15 @@ const urlDatabase = {
   s9m5xK: { longURL: "http://www.google.com" }
 };
 
+// users
+const users = {
+  "userRandomID": {
+    id: "RandomID",
+    email: "user@example.com",
+    password: "randpassword"
+  }
+}
+
 // GET REQUESTS
 // send HTML
 app.get("/hello", (req,res) => {
