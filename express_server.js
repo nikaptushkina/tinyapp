@@ -25,7 +25,7 @@ const urlDatabase = {
 // users
 const users = {
   "userRandomID": {
-    id: "RandomID",
+    id: "RandUser",
     email: "user@example.com",
     password: "randpassword"
   }
@@ -113,6 +113,24 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 app.post("/urls/:shortURL/edit", (req,res) => {
   urlDatabase[req.params.shortURL].longURL = req.body.longURL;
   res.redirect('/urls');
+});
+
+app.post("/register", (req,res) => {
+  const randomID = generateRandomString();
+  const userID = 'user' + Object.keys(users).length + randomID;
+  if (users[userID] === undefined) {
+    users[userID] = {
+      id: randomID,
+      email: req.body.email,
+      password: req.body.password
+    }
+  } else {
+    console.log('Error: This ID is unavailable');
+    res.redirect("/urls");
+  }
+  res.cookie('user_id', userID);
+  console.log(users);
+  res.redirect("/urls");
 });
 
 app.post("/login", (req,res) => {
