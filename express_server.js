@@ -2,12 +2,13 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const req = require("express/lib/request");
-const cookiePraser = require("cookie-parser");
+const cookieParser = require("cookie-parser");
 
 // set-up server
 const app = express();
 const PORT = 8080; // default port 8080
 app.use(bodyParser.urlencoded({extended: true})); // convert request body into string (from Buffer)
+app.use(cookieParser());
 
 // set ejs as view engine
 app.set("view engine", "ejs");
@@ -33,7 +34,10 @@ app.get("/", (req,res) => {
 
 // GET Route to Show the Form
 app.get("/urls/new", (req,res) => {
-  res.render("urls_new");
+  templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 // JSON string representing the entire urlDatabase object
@@ -43,7 +47,8 @@ app.get("/urls.json", (req,res) => {
 
 // Route for /urls
 app.get("/urls", (req,res) => {
-  const templateVars = { 
+  const templateVars = {
+    username: req.cookies["username"],
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
@@ -61,6 +66,7 @@ app.get("/u/:shortURL", (req,res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
+    username: req.cookies["username"],
     urls: urlDatabase,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
@@ -93,7 +99,15 @@ app.post("/urls/:shortURL/edit", (req,res) => {
 });
 
 app.post("/login", (req,res) => {
-  res.cookie('username', req.body.username);
+  if (req.body.username) {
+    const username = req.body.username;
+    res.cookie('username', username);
+  }
+  res.redirect('/urls');
+});
+
+app.post("/logout", (req,res) => {
+  res.clearCookie('username');
   res.redirect('/urls');
 });
 
