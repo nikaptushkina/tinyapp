@@ -23,13 +23,7 @@ const urlDatabase = {
 };
 
 // users
-const users = {
-  "userRandomID": {
-    id: "RandUser",
-    email: "user@example.com",
-    password: "randpassword"
-  }
-}
+const users = {};
 
 // GET REQUESTS
 // send HTML
@@ -44,7 +38,7 @@ app.get("/", (req,res) => {
 // GET Route to Show the Form
 app.get("/urls/new", (req,res) => {
   templateVars = {
-    username: req.cookies["username"]
+    user: req.cookies["user_id"]
   };
   res.render("urls_new", templateVars);
 });
@@ -56,8 +50,9 @@ app.get("/urls.json", (req,res) => {
 
 // Route for /urls
 app.get("/urls", (req,res) => {
+  const user = users[req.cookies["user_id"]];
   const templateVars = {
-    username: req.cookies["username"],
+    user: user,
     urls: urlDatabase,
   };
   res.render("urls_index", templateVars);
@@ -75,7 +70,7 @@ app.get("/u/:shortURL", (req,res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: req.cookies["user_id"],
     urls: urlDatabase,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
@@ -86,7 +81,7 @@ app.get("/urls/:shortURL", (req, res) => {
 // registration page
 app.get("/register", (req,res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: req.cookies["user_id"]
   };
   res.render("urls_register", templateVars);
 });
@@ -142,7 +137,7 @@ app.post("/login", (req,res) => {
 });
 
 app.post("/logout", (req,res) => {
-  res.clearCookie('username');
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
