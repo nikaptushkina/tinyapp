@@ -36,22 +36,16 @@ const checkIfLogged = function(users, req) {
   return result;
 };
 
-// check URL id and user id, populate database accordingly
-const urlsForUser = function(users, urlDatabase, userURL, req) {
-  for (const shortURL in urlDatabase) {
-    const user = users[req.cookies["user_id"]];
-    if (user.id === urlDatabase[shortURL].userID) {
-      userURL[shortURL] = {
-        longURL: urlDatabase[shortURL].longURL,
-        userID: user.id
-      };
-      urlDatabase[shortURL] = {
-        longURL: urlDatabase[shortURL].longURL,
-        userID: user.id
-      };
+// return url where userID = current userID
+const urlsForUser = function(userID, database) {
+  let currentID = userID
+  let userURLs = {};
+  for (let user in database) {
+    if (database[user].userID === currentID) {
+      userURLs[user] = database[user];
     }
   }
-  return userURL;
+  return userURLs;
 };
 
 // check if registered and return email
