@@ -57,11 +57,17 @@ const checkRegistered = function(cookie, database) {
   }
 };
 
+// check if shortURL exists
+const checkShortURL = function(URL, database) {
+  return database[URL];
+};
+
 module.exports = {
   generateRandomString,
   checkBlank,
   fetchUserInfo,
   checkIfLogged,
   urlsForUser,
-  checkRegistered
+  checkRegistered,
+  checkShortURL
 }
