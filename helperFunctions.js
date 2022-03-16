@@ -38,14 +38,14 @@ const checkIfLogged = function(users, req) {
 
 // check URL id and user id, populate database accordingly
 const urlsForUser = function(users, urlDatabase, userURL, req) {
-  for (const shortURL in urlDabase) {
+  for (const shortURL in urlDatabase) {
     const user = users[req.cookies["user_id"]];
     if (user.id === urlDatabase[shortURL].userID) {
       userURL[shortURL] = {
         longURL: urlDatabase[shortURL].longURL,
         userID: user.id
       };
-      urlDabase[shortURL] = {
+      urlDatabase[shortURL] = {
         longURL: urlDatabase[shortURL].longURL,
         userID: user.id
       };
