@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkEmail, checkIfLogged } = require("./helperFunctions");
+const { generateRandomString, checkBlank, checkEmail, checkIfLogged, checkUserUrl } = require("./helperFunctions");
 
 // set-up server
 const app = express();
@@ -43,7 +43,26 @@ app.get("/", (req,res) => {
   res.send("Hello!");
 });
 
-// GET Route to Show the Form
+// Route for /urls
+app.get("/urls", (req,res) => {
+  const userURL = {};
+  const user = users[req.cookies["user_id"]];
+  if(user !== undefined) {
+    checkUserUrl(users, urlDatabase, userURL, req);
+  }
+
+  const templateVars = {
+    user: user,
+    urls: urlDatabase,
+    req: req,
+    userURL: userURL,
+    users: users
+  };
+  
+  res.render("urls_index", templateVars);
+});
+
+// GET Route to show new URL form
 app.get("/urls/new", (req,res) => {
   const user = users[req.cookies["user_id"]];
   templateVars = {
@@ -61,15 +80,7 @@ app.get("/urls.json", (req,res) => {
   res.json(urlDatabase);
 });
 
-// Route for /urls
-app.get("/urls", (req,res) => {
-  const user = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: user,
-    urls: urlDatabase,
-  };
-  res.render("urls_index", templateVars);
-});
+
 
 // Redirect short URLs
 app.get("/u/:shortURL", (req,res) => {
