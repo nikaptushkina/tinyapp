@@ -17,8 +17,8 @@ const checkBlank =  function(req) {
   return results;
 };
 
-// checks if user's email is in the database and is able to return ID
-const checkEmail = function(email, data) {
+// checks if user's email is in the database and is able to return object with info
+const fetchUserInfo = function(email, data) {
   for (const user in data) {
     if (email === data[user].email) {
       return data[user];
@@ -66,7 +66,7 @@ const checkRegistered = function(cookie, database) {
 module.exports = {
   generateRandomString,
   checkBlank,
-  checkEmail,
+  fetchUserInfo,
   checkIfLogged,
   urlsForUser,
   checkRegistered
