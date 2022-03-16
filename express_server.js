@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo } = require("./helpers");
+const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo, checkShortURL } = require("./helpers");
 
 // set-up server
 const app = express();
@@ -94,24 +94,35 @@ app.get("/u/:shortURL", (req,res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
   const user = users[req.cookies["user_id"]];
-  const templateVars = {
-    user: user,
-    urls: urlDatabase,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
-  };
-
-  const userShort = urlDatabase[req.params.shortURL].userID;
-  if (user.id !== userShort) {
-    res.status(400).send(`
-    <h1>Error: 400</h1>
-    <h2>you don't have access</h2>
-    `);
+  if(checkShortURL(shortURL, urlDatabase)) {
+    const userShort = urlDatabase[req.params.shortURL].userID;
+    if (!user || user.id !== userShort) {
+      res.status(400).send(`
+      <h1>Error 400</h1>
+      <h2>you don't have access</h2>
+      <a href="/urls" class="inline_block" >access main page</a>
+      `);
+    } else {
+      const templateVars = {
+        user: user,
+        urls: urlDatabase,
+        shortURL: shortURL,
+        longURL: urlDatabase[shortURL].longURL
+      };
+      res.render("urls_show", templateVars);
+    }
   } else {
-  res.render("urls_show", templateVars);
-  }
+    res.send(`
+    <h1>Error</h1>
+    <h2>This url does not exist</h2>
+    <a href="/urls" class="inline_block" >access main page</a>
+    `)
+  };
 });
+
+
 
 // registration page
 app.get("/register", (req,res) => {
