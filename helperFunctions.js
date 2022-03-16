@@ -21,9 +21,10 @@ const checkBlank =  function(req) {
 const checkEmail = function(email, data) {
   for (const user in data) {
     if (email === data[user].email) {
-      return user;
+      return data[user];
     }
   }
+  return undefined;
 };
 
 module.exports = {
