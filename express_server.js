@@ -54,15 +54,15 @@ app.get("/urls", (req,res) => {
   if(!user) {
     res.render("urls_error");
   } else {
-  let userURL = {};
-  userURL = urlsForUser(users, urlDatabase, userURL, req);
-  console.log('userURL', userURL);
-  const templateVars = {
+    const linksOfUser = urlsForUser(user.id, urlDatabase);
+    console.log(user.id);
+    console.log(linksOfUser);
+    let templateVars = {
     user: user,
-    urls: userURL,
-  };
-  res.render("urls_index", templateVars);
-}
+    urls: linksOfUser
+    };
+    res.render("urls_index", templateVars);
+  }
 });
 
 // GET Route to show new URL form
@@ -136,11 +136,11 @@ app.get("/login", (req,res) => {
 app.post("/urls", (req,res) => {
   const user = users[req.cookies["user_id"]];
   const shortURL = generateRandomString();
+  const newURL = req.body.longURL;
   urlDatabase[shortURL] = {
-    longURL: req.body.longURL,
+    longURL: newURL,
     userID: user.id
   };
-
   res.redirect(`urls/${shortURL}`) // redirects upon POST request
 });
 
