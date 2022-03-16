@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkEmail, checkIfLogged, checkUserUrl } = require("./helperFunctions");
+const { generateRandomString, checkBlank, checkEmail, checkIfLogged, urlsForUser } = require("./helperFunctions");
 
 // set-up server
 const app = express();
@@ -48,7 +48,7 @@ app.get("/urls", (req,res) => {
   const userURL = {};
   const user = users[req.cookies["user_id"]];
   if(user !== undefined) {
-    checkUserUrl(users, urlDatabase, userURL, req);
+    urlsForUser(users, urlDatabase, userURL, req);
   }
 
   const templateVars = {

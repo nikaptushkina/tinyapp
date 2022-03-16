@@ -37,7 +37,7 @@ const checkIfLogged = function(users, req) {
 };
 
 // check URL id and user id, populate database accordingly
-const checkUserUrl = function(users, urlDatabase, userURL, req) {
+const urlsForUser = function(users, urlDatabase, userURL, req) {
   for (const shortURL in urlDabase) {
     const user = users[req.cookies["user_id"]];
     if (user.id === urlDatabase[shortURL].userID) {
@@ -58,5 +58,5 @@ module.exports = {
   checkBlank,
   checkEmail,
   checkIfLogged,
-  checkUserUrl
+  urlsForUser
 }
