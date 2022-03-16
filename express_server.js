@@ -80,8 +80,6 @@ app.get("/urls.json", (req,res) => {
   res.json(urlDatabase);
 });
 
-
-
 // Redirect short URLs
 app.get("/u/:shortURL", (req,res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -100,7 +98,16 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
   };
+
+  const userShort = urlDatabase[req.params.shortURL].userID;
+  if (user.id !== userShort) {
+    res.status(400).send(`
+    <h1>Error: 400</h1>
+    <h2>you don't have access</h2>
+    `);
+  } else {
   res.render("urls_show", templateVars);
+  }
 });
 
 // registration page
