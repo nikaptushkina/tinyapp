@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo, checkShortURL } = require("./helpers");
+const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo, checkShortURL, verifyOwner } = require("./helpers");
 
 // set-up server
 const app = express();
@@ -85,11 +85,16 @@ app.get("/urls.json", (req,res) => {
 
 // Redirect short URLs
 app.get("/u/:shortURL", (req,res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  if (longURL.startsWith('http://')) {
-    res.redirect(303, longURL);
+  let shortURL = req.params.shortURL;
+  if (checkShortURL(shortURL, urlDatabase)) {
+    const longURL = urlDatabase[shortURL].longURL;
+    res.redirect(longURL);
   } else {
-    res.redirect('http://' + longURL);
+    res.status(404).send(`
+    <h1>Error 404</h1>
+    <h2>This URL does not exist</h2>
+    <a href="/urls" class="inline_block" >access main page</a>
+    `);
   }
 });
 
@@ -157,26 +162,30 @@ app.post("/urls", (req,res) => {
 
 // to delete URLs *can't get correct end point
 app.post("/urls/:shortURL/delete", (req,res) => {
-  for (const shortURL in urlDatabase) {
-    const user = users[req.cookies["user_id"]];
-    if (user) {
-      if (user.id === urlDatabase[shortURL].userID) {
-        delete urlDatabase[req.params.shortURL];
-        return res.redirect('/urls');
-      } 
-    } else if (error) {
-      return res.status(400).send(`
-      <h1>Error 400</h1>
-      <h2>access forbidden</h2>
-      `);
-    } 
+  const user = users[req.cookies["user_id"]];
+  if (!user || !verifyOwner(user.id, req.params.shortURL, urlDatabase)) {
+    res.send(`
+    <h1>Error</h1>
+    <h2>you don't have access to this functionality</h2>
+    `)
+  } else {
+    delete urlDatabase[req.params.shortURL];
+    res.redirect('/urls');
   }
 });
 
 // to edit URLs 
 app.post("/urls/:shortURL/edit", (req,res) => {
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  res.redirect('/urls');
+  const user = users[req.cookies["user_id"]];
+  if (!user || !verifyOwner(user.id, req.params.shortURL, urlDatabase)) {
+    res.send(`
+    <h1>Error</h1>
+    <h2>you don't have access to this functionality</h2>
+    `)
+  } else {
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.redirect('/urls');
+  }
 });
 
 app.post("/register", (req,res) => {
