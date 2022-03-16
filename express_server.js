@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkEmail } = require("./helperFunctions");
+const { generateRandomString, checkBlank, checkEmail, checkIfLogged } = require("./helperFunctions");
 
 // set-up server
 const app = express();
@@ -20,12 +20,18 @@ app.listen(PORT, () => {
 
 // databases
 const urlDatabase = {
-  b2xVn2: { longURL: "http://www.lighthouselabs.ca" },
-  s9m5xK: { longURL: "http://www.google.com" }
+  b2xVn2: { longURL: "http://www.lighthouselabs.ca", userID: "AaHTyl" },
+  s9m5xK: { longURL: "http://www.google.com", userID: "AaHTyl"}
 };
 
 // users
-const users = {};
+const users = {
+  AaHTyl: {
+    id: 'AaHTyl',
+    email: 'test@gmail.com',
+    password: 'testpass123'
+  }
+};
 
 // GET REQUESTS
 // send HTML
@@ -43,6 +49,10 @@ app.get("/urls/new", (req,res) => {
   templateVars = {
     user: user
   };
+  if(checkIfLogged(users, req)) {
+    return res.redirect("/login");
+  }
+
   res.render("urls_new", templateVars);
 });
 
@@ -165,9 +175,9 @@ app.post("/login", (req,res) => {
   };
 
   const user = checkEmail(req.body.email, users);
-  const password = user.password;
-  const userID = user.id;
   if (user) {
+    const password = user.password;
+    const userID = user.id;
     if (req.body.password === password) {
       res.cookie('user_id', userID);
       res.redirect('/urls');
