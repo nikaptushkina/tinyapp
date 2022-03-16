@@ -3,7 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo, checkShortURL, verifyOwner } = require("./helpers");
 
 // set-up server
@@ -211,7 +211,7 @@ app.post("/register", (req,res) => {
     users[userID] = {
       id: userID,
       email: req.body.email,
-      password: req.body.password
+      password: bcrypt.hashSync(req.body.password, 10)
     }
   };
   res.cookie('user_id', userID);
