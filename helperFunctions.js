@@ -27,8 +27,18 @@ const checkEmail = function(email, data) {
   return undefined;
 };
 
+// check if login in
+const checkIfLogged = function(users, req) {
+  let result = true;
+  if (users[req.cookies["user_id"]]) {
+    result = false;
+  }
+  return result;
+};
+
 module.exports = {
   generateRandomString,
   checkBlank,
-  checkEmail
+  checkEmail,
+  checkIfLogged
 }
