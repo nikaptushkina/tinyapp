@@ -51,6 +51,7 @@ const urlsForUser = function(users, urlDatabase, userURL, req) {
       };
     }
   }
+  return userURL;
 };
 
 module.exports = {
