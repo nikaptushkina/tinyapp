@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkEmail, checkIfLogged, urlsForUser, checkRegistered } = require("./helpers");
+const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo } = require("./helpers");
 
 // set-up server
 const app = express();
@@ -40,7 +40,7 @@ app.get("/hello", (req,res) => {
 });
 
 app.get("/", (req,res) => {
-  const user = checkRegistered(users[req.cookies["user_id"]], users);
+  const user = users[req.cookies["user_id"]];
   if (!user) {
     res.redirect('/login');
   } else {
@@ -50,27 +50,19 @@ app.get("/", (req,res) => {
 
 // Route for /urls
 app.get("/urls", (req,res) => {
-  let userURL = {};
   const user = users[req.cookies["user_id"]];
   if(!user) {
-    res.status(400).send(`
-    <h1>Error 400</h1>
-    <h2>you don't have access</h2>
-    <a class="nav-item nav-link" href="/login">LOGIN</a>
-    `);
-  }
-  if(user !== undefined) {
-    userURL = urlsForUser(users, urlDatabase, userURL, req);
-  }
+    res.render("urls_error");
+  } else {
+  let userURL = {};
+  userURL = urlsForUser(users, urlDatabase, userURL, req);
   console.log('userURL', userURL);
-
   const templateVars = {
     user: user,
     urls: userURL,
-    req: req,
   };
-  
   res.render("urls_index", templateVars);
+}
 });
 
 // GET Route to show new URL form
@@ -185,7 +177,7 @@ app.post("/register", (req,res) => {
     `);
   };
   
-  const user = checkEmail(req.body.email, users);
+  const user = fetchUserInfo(req.body.email, users);
   if (user) {
     return res.status(409).send(`
     <h1>Error 400</h1>
@@ -216,7 +208,7 @@ app.post("/login", (req,res) => {
     `);
   };
 
-  const user = checkEmail(req.body.email, users);
+  const user = fetchUserInfo(req.body.email, users);
   if (user) {
     const password = user.password;
     const userID = user.id;
@@ -224,12 +216,15 @@ app.post("/login", (req,res) => {
       res.cookie('user_id', userID);
       res.redirect('/urls');
     } else {
-      res.status(403).send('Error 403... re-enter your password');
+      res.status(403).send(`
+      <h1>Error 403</h1>
+      <h2>re-enter your password</h2>
+      `);
     }
   } else {
   return res.status(403).send(`
   <h1>Error 403</h1>
-  <h2>email or password are invalid</h2>
+  <h2>email not found</h2>
   `);
   }
 });
