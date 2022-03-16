@@ -62,6 +62,15 @@ const checkShortURL = function(URL, database) {
   return database[URL];
 };
 
+// verify owner of url
+const verifyOwner = function(userID, shortURL, database) {
+  let result = true;
+  if (userID !== database[shortURL].userID) {
+    result = false;
+  }
+  return result;
+};
+
 module.exports = {
   generateRandomString,
   checkBlank,
@@ -69,5 +78,6 @@ module.exports = {
   checkIfLogged,
   urlsForUser,
   checkRegistered,
-  checkShortURL
+  checkShortURL,
+  verifyOwner
 }
