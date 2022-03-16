@@ -29,7 +29,7 @@ const users = {
   AaHTyl: {
     id: 'AaHTyl',
     email: 'test@gmail.com',
-    password: 'testpass123'
+    password: bcrypt.hashSync('testpass123', 10)
   }
 };
 
@@ -232,7 +232,7 @@ app.post("/login", (req,res) => {
   if (user) {
     const password = user.password;
     const userID = user.id;
-    if (req.body.password === password) {
+    if (bcrypt.compareSync(req.body.password, password)) {
       res.cookie('user_id', userID);
       res.redirect('/urls');
     } else {
