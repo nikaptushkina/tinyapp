@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkEmail, checkIfLogged, urlsForUser } = require("./helperFunctions");
+const { generateRandomString, checkBlank, checkEmail, checkIfLogged, urlsForUser } = require("./helpers");
 
 // set-up server
 const app = express();
@@ -45,18 +45,24 @@ app.get("/", (req,res) => {
 
 // Route for /urls
 app.get("/urls", (req,res) => {
-  const userURL = {};
+  let userURL = {};
   const user = users[req.cookies["user_id"]];
-  if(user !== undefined) {
-    urlsForUser(users, urlDatabase, userURL, req);
+  if(!user) {
+    res.status(400).send(`
+    <h1>Error 400</h1>
+    <h2>you don't have access</h2>
+    <a class="nav-item nav-link" href="/login">LOGIN</a>
+    `);
   }
+  if(user !== undefined) {
+    userURL = urlsForUser(users, urlDatabase, userURL, req);
+  }
+  console.log('userURL', userURL);
 
   const templateVars = {
     user: user,
-    urls: urlDatabase,
+    urls: userURL,
     req: req,
-    userURL: userURL,
-    users: users
   };
   
   res.render("urls_index", templateVars);
@@ -131,10 +137,13 @@ app.get("/login", (req,res) => {
 // POST REQUESTS
 // POST route to receive form submission
 app.post("/urls", (req,res) => {
+  const user = users[req.cookies["user_id"]];
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = {
-    longURL: req.body.longURL
+    longURL: req.body.longURL,
+    userID: user.id
   };
+
   res.redirect(`urls/${shortURL}`) // redirects upon POST request
 });
 
