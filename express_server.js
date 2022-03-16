@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcrypt");
-const { generateRandomString, checkBlank, checkEmail, checkIfLogged, urlsForUser } = require("./helpers");
+const { generateRandomString, checkBlank, checkEmail, checkIfLogged, urlsForUser, checkRegistered } = require("./helpers");
 
 // set-up server
 const app = express();
@@ -40,7 +40,12 @@ app.get("/hello", (req,res) => {
 });
 
 app.get("/", (req,res) => {
-  res.send("Hello!");
+  const user = checkRegistered(users[req.cookies["user_id"]], users);
+  if (!user) {
+    res.redirect('/login');
+  } else {
+    res.redirect('/urls');
+  }
 });
 
 // Route for /urls
