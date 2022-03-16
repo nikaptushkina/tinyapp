@@ -3,6 +3,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const req = require("express/lib/request");
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcrypt");
 const { generateRandomString, checkBlank, checkEmail } = require("./helperFunctions");
 
 // set-up server
@@ -38,8 +39,9 @@ app.get("/", (req,res) => {
 
 // GET Route to Show the Form
 app.get("/urls/new", (req,res) => {
+  const user = users[req.cookies["user_id"]];
   templateVars = {
-    user: req.cookies["user_id"]
+    user: user
   };
   res.render("urls_new", templateVars);
 });
@@ -70,8 +72,9 @@ app.get("/u/:shortURL", (req,res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  const user = users[req.cookies["user_id"]];
   const templateVars = {
-    user: req.cookies["user_id"],
+    user: user,
     urls: urlDatabase,
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL].longURL
@@ -81,16 +84,18 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // registration page
 app.get("/register", (req,res) => {
+  const user = users[req.cookies["user_id"]];
   const templateVars = {
-    user: req.cookies["user_id"]
+    user: user
   };
   res.render("urls_register", templateVars);
 });
 
 // login page
 app.get("/login", (req,res) => {
+  const user = users[req.cookies["user_id"]];
   const templateVars = {
-    user: req.cookies["user_id"]
+    user: user
   };
   res.render("urls_login", templateVars)
 });
@@ -137,25 +142,44 @@ app.post("/register", (req,res) => {
   }
 
   const randomID = generateRandomString();
-  const userID = 'user' + Object.keys(users).length + randomID;
+  const userID = randomID;
   if (users[userID] === undefined) {
     users[userID] = {
-      id: randomID,
+      id: userID,
       email: req.body.email,
       password: req.body.password
     }
   };
   res.cookie('user_id', userID);
-  console.log(users);
   res.redirect("/urls");
+  console.log(users);
 });
 
 app.post("/login", (req,res) => {
-  if (req.body.username) {
-    const username = req.body.username;
-    res.cookie('username', username);
+
+  if (checkBlank(req)) {
+    return res.status(400).send(`
+    <h1>Error 400</h1>
+    <h2>email or password field is blank</h2>
+    `);
+  };
+
+  const user = checkEmail(req.body.email, users);
+  const password = user.password;
+  const userID = user.id;
+  if (user) {
+    if (req.body.password === password) {
+      res.cookie('user_id', userID);
+      res.redirect('/urls');
+    } else {
+      res.status(403).send('Error 403... re-enter your password');
+    }
+  } else {
+  return res.status(403).send(`
+  <h1>Error 403</h1>
+  <h2>email or password are invalid</h2>
+  `);
   }
-  res.redirect('/urls');
 });
 
 app.post("/logout", (req,res) => {
