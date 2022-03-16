@@ -54,10 +54,20 @@ const urlsForUser = function(users, urlDatabase, userURL, req) {
   return userURL;
 };
 
+// check if registered and return email
+const checkRegistered = function(cookie, database) {
+  for (let users in database) {
+    if (cookie === users) {
+      return database[users].email;
+    }
+  }
+};
+
 module.exports = {
   generateRandomString,
   checkBlank,
   checkEmail,
   checkIfLogged,
-  urlsForUser
+  urlsForUser,
+  checkRegistered
 }
