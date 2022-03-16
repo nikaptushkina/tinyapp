@@ -147,12 +147,22 @@ app.post("/urls", (req,res) => {
   res.redirect(`urls/${shortURL}`) // redirects upon POST request
 });
 
-// to delete URLs
+// to delete URLs *can't get correct end point
 app.post("/urls/:shortURL/delete", (req,res) => {
   for (const shortURL in urlDatabase) {
-    delete urlDatabase[req.params.shortURL];
+    const user = users[req.cookies["user_id"]];
+    if (user) {
+      if (users[user].id === urlDatabase[shortURL].userID) {
+        delete urlDatabase[req.params.shortURL];
+        return res.redirect('/urls');
+      } 
+    } else {
+      return res.status(400).send(`
+      <h1>Error 400</h1>
+      <h2>access forbidden</h2>
+      `);
+    }
   }
-  return res.redirect('/urls');
 });
 
 // to edit URLs
