@@ -1,10 +1,16 @@
 // imports & requirements
 const express = require("express");
 const bodyParser = require("body-parser");
-const req = require("express/lib/request");
 const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
-const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, getUserByEmail, checkShortURL, verifyOwner } = require("./helpers");
+const { generateRandomString,
+  checkBlank,
+  checkIfLogged,
+  urlsForUser,
+  getUserByEmail,
+  checkShortURL,
+  verifyOwner
+} = require("./helpers");
 
 // set-up server
 const app = express();
@@ -12,13 +18,13 @@ const PORT = 8080; // default port 8080
 app.use(bodyParser.urlencoded({extended: true})); // convert request body into string (from Buffer)
 app.use(cookieSession({
   name: 'session',
-  keys: ['user_id']
+  keys: ['userId']
 }));
 
 // set ejs as view engine
 app.set("view engine", "ejs");
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`)
+  console.log(`Example app listening on port ${PORT}!`);
 });
 
 // databases
@@ -27,7 +33,6 @@ const urlDatabase = {
   s9m5xK: { longURL: "http://www.google.com", userID: "AaHTyl"}
 };
 
-// users
 const users = {
   AaHTyl: {
     id: 'AaHTyl',
@@ -37,13 +42,13 @@ const users = {
 };
 
 // GET REQUESTS
-// send HTML
+// GET route /hello to practice sending HTML
 app.get("/hello", (req,res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/", (req,res) => {
-  const user = users[req.session.user_id];
+  const user = users[req.session.userId];
   if (!user) {
     res.redirect('/login');
   } else {
@@ -51,42 +56,41 @@ app.get("/", (req,res) => {
   }
 });
 
-// Route for /urls
+// GET route /urls
+// JSON string representing the entire urlDatabase object
+app.get("/urls.json", (req,res) => {
+  res.json(urlDatabase);
+});
+
+// GET route /urls
 app.get("/urls", (req,res) => {
-  const user = users[req.session.user_id];
-  if(!user) {
+  const user = users[req.session.userId];
+  if (!user) {
     res.render("urls_error");
   } else {
     const linksOfUser = urlsForUser(user.id, urlDatabase);
-    console.log(user.id);
-    console.log(linksOfUser);
     let templateVars = {
-    user: user,
-    urls: linksOfUser
+      user: user,
+      urls: linksOfUser
     };
     res.render("urls_index", templateVars);
   }
 });
 
-// GET Route to show new URL form
+// GET route /urls/new to show new URL form
 app.get("/urls/new", (req,res) => {
-  const user = users[req.session.user_id];
-  templateVars = {
+  const user = users[req.session.userId];
+  const templateVars = {
     user: user
   };
-  if(!checkIfLogged(users, req)) {
+  if (!checkIfLogged(users, req)) {
     return res.redirect("/login");
   }
 
   res.render("urls_new", templateVars);
 });
 
-// JSON string representing the entire urlDatabase object
-app.get("/urls.json", (req,res) => {
-  res.json(urlDatabase);
-});
-
-// Redirect short URLs
+// GET route /u/:shortURL to redirect short URLs to long URL
 app.get("/u/:shortURL", (req,res) => {
   let shortURL = req.params.shortURL;
   if (checkShortURL(shortURL, urlDatabase)) {
@@ -101,10 +105,11 @@ app.get("/u/:shortURL", (req,res) => {
   }
 });
 
+// GET route /urls/:shortURL to show specific URL page with edit option
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const user = users[req.session.user_id];
-  if(checkShortURL(shortURL, urlDatabase)) {
+  const user = users[req.session.userId];
+  if (checkShortURL(shortURL, urlDatabase)) {
     const userShort = urlDatabase[req.params.shortURL].userID;
     if (!user || user.id !== userShort) {
       res.status(400).send(`
@@ -126,71 +131,70 @@ app.get("/urls/:shortURL", (req, res) => {
     <h1>Error</h1>
     <h2>This url does not exist</h2>
     <a href="/urls" class="inline_block" >access main page</a>
-    `)
-  };
+    `);
+  }
 });
 
-
-
-// registration page
+// GET /register to make new account
 app.get("/register", (req,res) => {
-  const user = users[req.session.user_id];
+  const user = users[req.session.userId];
   const templateVars = {
     user: user
   };
   res.render("urls_register", templateVars);
 });
 
-// login page
+// GET /login page
 app.get("/login", (req,res) => {
-  const user = users[req.session.user_id];
+  const user = users[req.session.userId];
   const templateVars = {
     user: user
   };
-  res.render("urls_login", templateVars)
+  res.render("urls_login", templateVars);
 });
 
 // POST REQUESTS
-// POST route to receive form submission
+// POST route /urls to receive form submission
 app.post("/urls", (req,res) => {
-  const user = users[req.session.user_id];
+  const user = users[req.session.userId];
   const shortURL = generateRandomString();
   const newURL = req.body.longURL;
   urlDatabase[shortURL] = {
     longURL: newURL,
     userID: user.id
   };
-  res.redirect(`urls/${shortURL}`) // redirects upon POST request
+  res.redirect(`urls/${shortURL}`);
 });
 
-// to delete URLs *can't get correct end point
+// POST route /urls/:shortURL/delete to delete URLs
 app.post("/urls/:shortURL/delete", (req,res) => {
-  const user = users[req.session.user_id];
+  const user = users[req.session.userId];
   if (!user || !verifyOwner(user.id, req.params.shortURL, urlDatabase)) {
     res.send(`
     <h1>Error</h1>
     <h2>you don't have access to this functionality</h2>
-    `)
+    `);
   } else {
     delete urlDatabase[req.params.shortURL];
     res.redirect('/urls');
   }
 });
 
-// to edit URLs 
+// POST route /urls/:shortURL/edit to edit URLs
 app.post("/urls/:shortURL/edit", (req,res) => {
-  const user = users[req.session.user_id];
+  const user = users[req.session.userId];
   if (!user || !verifyOwner(user.id, req.params.shortURL, urlDatabase)) {
     res.send(`
     <h1>Error</h1>
     <h2>you don't have access to this functionality</h2>
-    `)
+    `);
   } else {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect('/urls');
   }
 });
 
+// POST route /register to ensure proper function of form
 app.post("/register", (req,res) => {
   
   if (checkBlank(req)) {
@@ -198,7 +202,7 @@ app.post("/register", (req,res) => {
     <h1>Error 400</h1>
     <h2>email or password field is blank</h2>
     `);
-  };
+  }
   
   const user = getUserByEmail(req.body.email, users);
   if (user) {
@@ -215,13 +219,14 @@ app.post("/register", (req,res) => {
       id: userID,
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 10)
-    }
-  };
-  req.session.user_id = randomID;
+    };
+  }
+  req.session.userId = randomID;
   res.redirect("/urls");
   console.log(users);
 });
 
+// POST route /login to ensure proper function of form
 app.post("/login", (req,res) => {
 
   if (checkBlank(req)) {
@@ -229,14 +234,14 @@ app.post("/login", (req,res) => {
     <h1>Error 400</h1>
     <h2>email or password field is blank</h2>
     `);
-  };
+  }
 
   const user = getUserByEmail(req.body.email, users);
   if (user) {
     const password = user.password;
     const userID = user.id;
     if (bcrypt.compareSync(req.body.password, password)) {
-      req.session.user_id = userID;
+      req.session.userId = userID;
       res.redirect('/urls');
     } else {
       res.status(403).send(`
@@ -245,13 +250,14 @@ app.post("/login", (req,res) => {
       `);
     }
   } else {
-  return res.status(403).send(`
-  <h1>Error 403</h1>
-  <h2>email not found</h2>
-  `);
+    return res.status(403).send(`
+    <h1>Error 403</h1>
+    <h2>email not found</h2>
+    `);
   }
 });
 
+// POST route /logout
 app.post("/logout", (req,res) => {
   req.session = null;
   res.redirect('/urls');

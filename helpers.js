@@ -1,5 +1,5 @@
 // returns 6 random alphanumeric characters
-function generateRandomString() {
+const generateRandomString = function() {
   let result = '';
   let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   for (let i = 0; i < 6; i++) {
@@ -30,7 +30,7 @@ const getUserByEmail = function(email, data) {
 // check if login in
 const checkIfLogged = function(users, req) {
   let result = true;
-  if (!users[req.session.user_id]) {
+  if (!users[req.session.userId]) {
     result = false;
   }
   return result;
@@ -38,7 +38,7 @@ const checkIfLogged = function(users, req) {
 
 // return url where userID = current userID
 const urlsForUser = function(userID, database) {
-  let currentID = userID
+  let currentID = userID;
   let userURLs = {};
   for (let user in database) {
     if (database[user].userID === currentID) {
@@ -46,15 +46,6 @@ const urlsForUser = function(userID, database) {
     }
   }
   return userURLs;
-};
-
-// check if registered and return email
-const checkRegistered = function(cookie, database) {
-  for (let users in database) {
-    if (cookie === users) {
-      return database[users].email;
-    }
-  }
 };
 
 // check if shortURL exists
@@ -77,7 +68,6 @@ module.exports = {
   getUserByEmail,
   checkIfLogged,
   urlsForUser,
-  checkRegistered,
   checkShortURL,
   verifyOwner
-}
+};
