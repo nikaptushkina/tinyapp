@@ -18,7 +18,7 @@ const checkBlank =  function(req) {
 };
 
 // checks if user's email is in the database and is able to return object with info
-const fetchUserInfo = function(email, data) {
+const getUserByEmail = function(email, data) {
   for (const user in data) {
     if (email === data[user].email) {
       return data[user];
@@ -30,7 +30,7 @@ const fetchUserInfo = function(email, data) {
 // check if login in
 const checkIfLogged = function(users, req) {
   let result = true;
-  if (!users[req.cookies["user_id"]]) {
+  if (!users[req.session.user_id]) {
     result = false;
   }
   return result;
@@ -74,7 +74,7 @@ const verifyOwner = function(userID, shortURL, database) {
 module.exports = {
   generateRandomString,
   checkBlank,
-  fetchUserInfo,
+  getUserByEmail,
   checkIfLogged,
   urlsForUser,
   checkRegistered,
