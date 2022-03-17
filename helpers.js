@@ -30,7 +30,7 @@ const fetchUserInfo = function(email, data) {
 // check if login in
 const checkIfLogged = function(users, req) {
   let result = true;
-  if (users[req.cookies["user_id"]]) {
+  if (!users[req.cookies["user_id"]]) {
     result = false;
   }
   return result;

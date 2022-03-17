@@ -71,7 +71,7 @@ app.get("/urls/new", (req,res) => {
   templateVars = {
     user: user
   };
-  if(checkIfLogged(users, req)) {
+  if(!checkIfLogged(users, req)) {
     return res.redirect("/login");
   }
 
