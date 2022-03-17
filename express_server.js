@@ -2,15 +2,18 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const req = require("express/lib/request");
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require("bcryptjs");
-const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, fetchUserInfo, checkShortURL, verifyOwner } = require("./helpers");
+const { generateRandomString, checkBlank, checkIfLogged, urlsForUser, checkRegistered, getUserByEmail, checkShortURL, verifyOwner } = require("./helpers");
 
 // set-up server
 const app = express();
 const PORT = 8080; // default port 8080
 app.use(bodyParser.urlencoded({extended: true})); // convert request body into string (from Buffer)
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['user_id']
+}));
 
 // set ejs as view engine
 app.set("view engine", "ejs");
@@ -40,7 +43,7 @@ app.get("/hello", (req,res) => {
 });
 
 app.get("/", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   if (!user) {
     res.redirect('/login');
   } else {
@@ -50,7 +53,7 @@ app.get("/", (req,res) => {
 
 // Route for /urls
 app.get("/urls", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   if(!user) {
     res.render("urls_error");
   } else {
@@ -67,7 +70,7 @@ app.get("/urls", (req,res) => {
 
 // GET Route to show new URL form
 app.get("/urls/new", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   templateVars = {
     user: user
   };
@@ -100,7 +103,7 @@ app.get("/u/:shortURL", (req,res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   if(checkShortURL(shortURL, urlDatabase)) {
     const userShort = urlDatabase[req.params.shortURL].userID;
     if (!user || user.id !== userShort) {
@@ -131,7 +134,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // registration page
 app.get("/register", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   const templateVars = {
     user: user
   };
@@ -140,7 +143,7 @@ app.get("/register", (req,res) => {
 
 // login page
 app.get("/login", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   const templateVars = {
     user: user
   };
@@ -150,7 +153,7 @@ app.get("/login", (req,res) => {
 // POST REQUESTS
 // POST route to receive form submission
 app.post("/urls", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   const shortURL = generateRandomString();
   const newURL = req.body.longURL;
   urlDatabase[shortURL] = {
@@ -162,7 +165,7 @@ app.post("/urls", (req,res) => {
 
 // to delete URLs *can't get correct end point
 app.post("/urls/:shortURL/delete", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   if (!user || !verifyOwner(user.id, req.params.shortURL, urlDatabase)) {
     res.send(`
     <h1>Error</h1>
@@ -176,7 +179,7 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 
 // to edit URLs 
 app.post("/urls/:shortURL/edit", (req,res) => {
-  const user = users[req.cookies["user_id"]];
+  const user = users[req.session.user_id];
   if (!user || !verifyOwner(user.id, req.params.shortURL, urlDatabase)) {
     res.send(`
     <h1>Error</h1>
@@ -197,7 +200,7 @@ app.post("/register", (req,res) => {
     `);
   };
   
-  const user = fetchUserInfo(req.body.email, users);
+  const user = getUserByEmail(req.body.email, users);
   if (user) {
     return res.status(409).send(`
     <h1>Error 400</h1>
@@ -214,7 +217,7 @@ app.post("/register", (req,res) => {
       password: bcrypt.hashSync(req.body.password, 10)
     }
   };
-  res.cookie('user_id', userID);
+  req.session.user_id = randomID;
   res.redirect("/urls");
   console.log(users);
 });
@@ -228,12 +231,12 @@ app.post("/login", (req,res) => {
     `);
   };
 
-  const user = fetchUserInfo(req.body.email, users);
+  const user = getUserByEmail(req.body.email, users);
   if (user) {
     const password = user.password;
     const userID = user.id;
     if (bcrypt.compareSync(req.body.password, password)) {
-      res.cookie('user_id', userID);
+      req.session.user_id = userID;
       res.redirect('/urls');
     } else {
       res.status(403).send(`
@@ -250,6 +253,6 @@ app.post("/login", (req,res) => {
 });
 
 app.post("/logout", (req,res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect('/urls');
 });
